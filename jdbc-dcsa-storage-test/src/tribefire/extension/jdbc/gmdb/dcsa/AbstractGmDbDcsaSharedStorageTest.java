@@ -34,7 +34,8 @@ import com.braintribe.exception.Exceptions;
 import com.braintribe.gm.jdbc.api.GmDb;
 import com.braintribe.gm.jdbc.api.GmRow;
 import com.braintribe.model.access.smood.collaboration.distributed.api.sharedstorage.AbstractSharedStorageTest;
-import com.braintribe.model.processing.lock.db.impl.DbLockManager;
+import com.braintribe.model.processing.lock.api.Locking;
+import com.braintribe.model.processing.locking.db.impl.DbLocking;
 import com.braintribe.model.resource.Resource;
 import com.braintribe.utils.FileTools;
 import com.braintribe.utils.IOTools;
@@ -89,21 +90,20 @@ public abstract class AbstractGmDbDcsaSharedStorageTest extends AbstractSharedSt
 	private static final GmCodec<Object, String> jsonCodec = new JsonStreamMarshaller();
 
 	protected final DataSource dataSource;
-	protected DbLockManager lockManager;
+	protected Locking locking;
 	protected final GmDb gmDb;
-
 
 	public AbstractGmDbDcsaSharedStorageTest(DbVendor vendor) {
 		this.dataSource = dbTestSession.contract.dataSource(vendor);
-		this.lockManager = lockManager(dataSource);
+		this.locking = locking(dataSource);
 		this.gmDb = GmDb.newDb(dataSource) //
 				.withDefaultCodec(jsonCodec) //
 				.withStreamPipeFactory(StreamPipes.simpleFactory()) //
 				.done();
 	}
 
-	private DbLockManager lockManager(DataSource dataSource) {
-		DbLockManager bean = new DbLockManager();
+	private DbLocking locking(DataSource dataSource) {
+		DbLocking bean = new DbLocking();
 		bean.setDataSource(dataSource);
 		bean.setAutoUpdateSchema(true);
 		bean.postConstruct();

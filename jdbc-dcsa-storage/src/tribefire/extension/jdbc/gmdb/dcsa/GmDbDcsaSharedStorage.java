@@ -61,7 +61,7 @@ import com.braintribe.model.access.collaboration.distributed.api.model.CsaStoreR
 import com.braintribe.model.generic.GMF;
 import com.braintribe.model.generic.reflection.GmReflectionTools;
 import com.braintribe.model.generic.session.InputStreamProvider;
-import com.braintribe.model.processing.lock.api.LockManager;
+import com.braintribe.model.processing.lock.api.Locking;
 import com.braintribe.model.resource.Resource;
 import com.braintribe.util.jdbc.dialect.DbVariant;
 import com.braintribe.utils.IOTools;
@@ -95,7 +95,7 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 
 	private static final Logger log = Logger.getLogger(GmDbDcsaSharedStorage.class);
 
-	private LockManager lockManager;
+	private Locking locking;
 	private GmDb gmDb;
 	private String projectId;
 
@@ -112,7 +112,7 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 	private final LazyInitialized<TableDriver> tableDriver = new LazyInitialized<>(TableDriver::new);
 
 	// @formatter:off
-	@Required public void setLockManager(LockManager lockManager) { this.lockManager = lockManager; }
+	@Required public void setLocking(Locking locking) { this.locking = locking; }
 	/** This GmDb must have a {@link GmDb#defaultCodec default codec} configured. */
 	@Required public void setGmDb(GmDb gmDb) { this.gmDb = gmDb; }
 	@Required public void setProjectId(	String projectId) { this.projectId = projectId; }	
@@ -148,7 +148,7 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 	private void validateRequiredDependenciesConfigured() {
 		validateNotNull(gmDb, "gmDb");
 		validateNotNull(gmDb.defaultCodec, "gmDb.defaultCodec");
-		validateNotNull(lockManager, "lockManager");
+		validateNotNull(locking, "locking");
 		validateNotEmpty(projectId, "projectId");
 		validateNotEmpty(opsTableName, "tableName");
 		validateNotEmpty(resTableName, "tableName");
@@ -177,7 +177,7 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 	/** {@inheritDoc} */
 	@Override
 	public Lock getLock(String accessId) {
-		return lockManager.forIdentifier(accessId).lockTtl(lockTtlInMs, TimeUnit.MILLISECONDS).exclusive();
+		return locking.forIdentifier(accessId).writeLock();
 	}
 
 	/** {@inheritDoc} */

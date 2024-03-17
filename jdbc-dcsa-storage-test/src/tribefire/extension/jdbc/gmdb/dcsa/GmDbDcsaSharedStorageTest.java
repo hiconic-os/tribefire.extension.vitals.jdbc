@@ -104,7 +104,7 @@ public class GmDbDcsaSharedStorageTest extends AbstractGmDbDcsaSharedStorageTest
 
 		storage.setProjectId("storage-test-" + UUID.randomUUID().toString());
 		storage.setGmDb(gmDb);
-		storage.setLockManager(lockManager);
+		storage.setLocking(locking);
 
 		storage.postConstruct();
 

@@ -22,8 +22,8 @@ import com.braintribe.model.deployment.database.pool.HikariCpConnectionPool;
 import com.braintribe.model.processing.bootstrapping.TribefireRuntime;
 import com.braintribe.model.processing.deployment.api.ExpertContext;
 import com.braintribe.model.processing.deployment.api.binding.DenotationBindingBuilder;
-import com.braintribe.model.processing.lock.api.LockManager;
-import com.braintribe.model.processing.lock.db.impl.DbLockManager;
+import com.braintribe.model.processing.lock.api.Locking;
+import com.braintribe.model.processing.locking.db.impl.DbLocking;
 import com.braintribe.wire.api.annotation.Import;
 import com.braintribe.wire.api.annotation.Managed;
 
@@ -108,7 +108,7 @@ public class JdbcDcsaStorageModuleSpace implements TribefireModuleContract {
 		GmDbDcsaSharedStorage bean = new GmDbDcsaSharedStorage();
 		bean.setProjectId(deployable.getProject());
 		bean.setGmDb(gmDb(context));
-		bean.setLockManager(dataSourceInfo.lockManager);
+		bean.setLocking(dataSourceInfo.locking);
 		bean.setAutoUpdateSchema(false);
 
 		return bean;
@@ -138,7 +138,7 @@ public class JdbcDcsaStorageModuleSpace implements TribefireModuleContract {
 		storage.setProjectId(deployable.getProject());
 		storage.setAutoUpdateSchema(!Boolean.FALSE.equals(deployable.getAutoUpdateSchema()));
 		storage.setDataSource(dataSourceInfo.dataSource);
-		storage.setLockManager(dataSourceInfo.lockManager);
+		storage.setLocking(dataSourceInfo.locking);
 		storage.setMarshaller(new com.braintribe.codec.marshaller.json.JsonStreamMarshaller());
 		storage.setParallelFetchThreads(getParallelFetchThreads(deployable));
 		storage.setAutoUpdateSchema(false);
@@ -191,14 +191,14 @@ public class JdbcDcsaStorageModuleSpace implements TribefireModuleContract {
 
 	private static class DcsaDataSourceInfo {
 		public DataSource dataSource;
-		public LockManager lockManager;
+		public Locking locking;
 	}
 
 	@Managed
 	private DcsaDataSourceInfo dataSourceInfo(ExpertContext<JdbcDcsaSharedStorage> context) {
 		DcsaDataSourceInfo bean = new DcsaDataSourceInfo();
 		bean.dataSource = resolveDataSource(context);
-		bean.lockManager = lockManager(bean.dataSource);
+		bean.locking = locking(bean.dataSource);
 
 		return bean;
 	}
@@ -207,8 +207,8 @@ public class JdbcDcsaStorageModuleSpace implements TribefireModuleContract {
 		return context.resolve(context.getDeployable().getConnectionPool(), DatabaseConnectionPool.T);
 	}
 
-	private LockManager lockManager(DataSource dataSource) {
-		DbLockManager bean = new DbLockManager();
+	private Locking locking(DataSource dataSource) {
+		DbLocking bean = new DbLocking();
 		bean.setDataSource(dataSource);
 		bean.postConstruct();
 		return bean;
