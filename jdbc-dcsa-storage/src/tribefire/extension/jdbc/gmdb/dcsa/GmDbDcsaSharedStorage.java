@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 import com.braintribe.cfg.Configurable;
 import com.braintribe.cfg.LifecycleAware;
 import com.braintribe.cfg.Required;
-import com.braintribe.common.lcd.Numbers;
 import com.braintribe.execution.CustomThreadFactory;
 import com.braintribe.execution.ExtendedThreadPoolExecutor;
 import com.braintribe.gm.jdbc.api.GmColumn;
@@ -88,7 +87,6 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 
 	public static final String DEFAULT_OPS_TABLE_NAME = "TF_DCSA_OPS"; // temporarily public
 	public static final String DEFAULT_RES_TABLE_NAME = "TF_DCSA_RES"; // temporarily public
-	private static final long DEFAULT_LOCK_TTL = Numbers.MILLISECONDS_PER_MINUTE;
 	private static final boolean DEFAULT_AUTO_UPDATE_SCHEMA = true;
 	private static final int DEFAULT_EXECUTOR_THREADS = 4;
 	private static final int DEFAULT_BATCH_SIZE = 10;
@@ -101,7 +99,6 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 
 	private final String opsTableName = DEFAULT_OPS_TABLE_NAME; // temporarily not configurable
 	private final String resTableName = DEFAULT_RES_TABLE_NAME; // temporarily not configurable
-	private long lockTtlInMs = DEFAULT_LOCK_TTL;
 	private boolean autoUpdateSchema = DEFAULT_AUTO_UPDATE_SCHEMA;
 
 	private ThreadPoolExecutor executor;
@@ -119,8 +116,6 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 
 	// Optional:
 	
-	/** Default value is {@value #DEFAULT_LOCK_TTL} */
-	@Configurable public void setLockTtlInMs(long lockTtlInMs) { this.lockTtlInMs = lockTtlInMs; }
 	/** Default name is {@value #DEFAULT_TABLE_NAME} */
 	//@Configurable public void setTableName(String tableName) { this.tableName = tableName;}
 	/** Default is {@value #DEFAULT_AUTO_UPDATE_SCHEMA} */
@@ -150,8 +145,8 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 		validateNotNull(gmDb.defaultCodec, "gmDb.defaultCodec");
 		validateNotNull(locking, "locking");
 		validateNotEmpty(projectId, "projectId");
-		validateNotEmpty(opsTableName, "tableName");
-		validateNotEmpty(resTableName, "tableName");
+		validateNotEmpty(opsTableName, "opsTableName");
+		validateNotEmpty(resTableName, "resTableName");
 	}
 
 	private void validateNotNull(Object o, String name) {
@@ -242,6 +237,8 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 			return gmDb.dialect.knownDbVariant() == DbVariant.mysql ? 15_000 : IOTools.SIZE_64K;
 		}
 
+		private final GmIndex idxIdAccessProject = gmDb.index("idx_id_acc_proj", colOpIdStr, colOpAccessId, colOpProjectId);
+
 		private final GmIndex idxResourcePath = gmDb.index("idx_res_path", colResPath);
 
 		public final GmTable opsTable = //
@@ -254,7 +251,8 @@ public class GmDbDcsaSharedStorage implements DcsaSharedStorage, LifecycleAware 
 								colOpEntity, //
 								colOpPayload, //
 								colOpIsGc //
-						).done();
+						).withIndices(idxIdAccessProject) //
+						.done();
 
 		public final GmTable resTable = //
 				gmDb.newTable(resTableName) //

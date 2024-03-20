@@ -128,7 +128,6 @@ public class JdbcDcsaStorageModuleSpace implements TribefireModuleContract {
 	}
 
 	@Managed
-	@SuppressWarnings("deprecation")
 	private JdbcDcsaStorage jdbcDcsaSharedStorage(ExpertContext<JdbcDcsaSharedStorage> context) {
 		JdbcDcsaSharedStorage deployable = context.getDeployable();
 
