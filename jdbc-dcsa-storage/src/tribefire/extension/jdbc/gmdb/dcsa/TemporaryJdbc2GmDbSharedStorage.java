@@ -31,8 +31,8 @@ import com.braintribe.model.resource.Resource;
 
 /**
  * A temporary {@link DcsaSharedStorage} implementation which is backed by the old {@link JdbcDcsaStorage} and new
- * {@link GmDbDcsaSharedStorage} implementations. It delegates to GMDB for the most time, just at the very first attempt
- * to access that data it sees the data is not there, it retrieves it from JDBC impl and stores in the GMDB one.
+ * {@link GmDbDcsaSharedStorage} implementations. It delegates to GMDB if available, but falls back to JDBC one if not.
+ * In case neither exits, it also picks GMDB and ensures new tables are created.
  * 
  * @author peter.gazdik
  */

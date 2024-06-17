@@ -50,7 +50,7 @@ public class SharedStorageStatusReporter {
 	public void onStartDowngrade() {
 		this.upgrader = null;
 		this.date = new Date();
-		this.status = SharedStorageStatus.DOWNGRADED;
+		this.status = SharedStorageStatus.DOWNGRADING;
 	}
 
 	public void onActionFinished(SharedStorageStatus status, Exception e) {

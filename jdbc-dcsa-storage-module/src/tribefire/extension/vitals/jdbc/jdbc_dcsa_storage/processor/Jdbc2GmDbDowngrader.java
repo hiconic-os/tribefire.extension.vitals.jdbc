@@ -30,6 +30,8 @@ import tribefire.extension.jdbc.gmdb.dcsa.TemporaryJdbc2GmDbSharedStorage;
 import tribefire.extension.vitals.jdbc.model.migration.SharedStorageStatus;
 
 /**
+ * DCSA downgrade is simply done by deleting the new tables, created on upgrade.
+ * 
  * @author peter.gazdik
  */
 /* package */ class Jdbc2GmDbDowngrader {
